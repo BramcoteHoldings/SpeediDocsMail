@@ -1,0 +1,29 @@
+unit SpeediDocsMail_TLB;
+
+{$TYPEDADDRESS OFF}
+
+interface
+
+uses SysUtils, ComObj, ComServ, ActiveX, Variants;
+
+const
+  SpeediDocsMailMajorVersion = 1;
+  SpeediDocsMailMinorVersion = 0;
+
+  LIBID_SpeediDocsMail: TGUID = '{C8C7A0FC-32A3-40B4-AB53-289B7AE28864}';
+
+  IID_IInsight_Addin_for_Outlook: TGUID = '{4FAE58C5-E729-47F4-8F31-F426AD41CD75}';
+  CLASS_Insight_Addin_for_Outlook: TGUID = '{4A9F8918-8DDA-4D30-A76F-788938C46B95}';
+
+type
+  IInsight_Addin_for_Outlook = interface(IDispatch)
+    ['{4FAE58C5-E729-47F4-8F31-F426AD41CD75}']
+  end;
+
+  IInsight_Addin_for_OutlookDisp = dispinterface
+    ['{4FAE58C5-E729-47F4-8F31-F426AD41CD75}']
+  end;
+
+implementation
+
+end.

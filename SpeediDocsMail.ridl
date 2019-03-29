@@ -1,0 +1,37 @@
+[
+  uuid(C8C7A0FC-32A3-40B4-AB53-289B7AE28864),
+  version(1.0),
+  helpstring("SpeediDocsMail Library")
+
+]
+library SpeediDocsMail
+{
+
+  importlib("stdole2.tlb");
+
+  interface IInsight_Addin_for_Outlook;
+  coclass Insight_Addin_for_Outlook;
+
+
+  [
+    uuid(4FAE58C5-E729-47F4-8F31-F426AD41CD75),
+    version(1.0),
+    helpstring("Dispatch interface for Insight_Addin_for_Outlook Object"),
+    dual,
+    oleautomation
+  ]
+  interface IInsight_Addin_for_Outlook: IDispatch
+  {
+  };
+
+  [
+    uuid(4A9F8918-8DDA-4D30-A76F-788938C46B95),
+    version(1.0),
+    helpstring("Insight_Addin_for_Outlook Object")
+  ]
+  coclass Insight_Addin_for_Outlook
+  {
+    [default] interface IInsight_Addin_for_Outlook;
+  };
+
+};

@@ -1,0 +1,372 @@
+unit SpeediDocsMail_IMPL;
+
+interface
+
+uses
+  SysUtils, ComObj, ComServ, ActiveX, Variants, Outlook2000, Office2000, adxAddIn, SpeediDocsMail_TLB,
+  System.Classes, StdVcl, Registry, Windows, SaveDoc, Outlook2010,
+  adxHostAppEvents;
+
+  const
+   csRegistryRoot = 'Software\Colateral\Axiom\SpeediDocs';
+
+type
+  TInsight_Addin_for_Outlook = class(TadxAddin, IInsight_Addin_for_Outlook)
+  end;
+
+  TAddInModule = class(TadxCOMAddInModule)
+    adxRibbonTab1: TadxRibbonTab;
+    adxOutlookAppEvents1: TadxOutlookAppEvents;
+    adxRibbonContextMenu1: TadxRibbonContextMenu;
+    procedure adxCOMAddInModuleAddInInitialize(Sender: TObject);
+    procedure adxCOMAddInModuleAddInStartupComplete(Sender: TObject);
+    procedure adxCOMAddInModuleAddInBeginShutdown(Sender: TObject);
+    procedure adxRibbonTab1Controls1Controls0Click(Sender: TObject;
+      const RibbonControl: IRibbonControl);
+    procedure adxRibbonContextMenu1Controls1Click(Sender: TObject;
+      const RibbonControl: IRibbonControl);
+    procedure adxRibbonTab1Controls0Controls0Click(Sender: TObject;
+      const RibbonControl: IRibbonControl);
+    procedure adxOutlookAppEvents1NewMailEx(ASender: TObject;
+      const EntryIDCollection: WideString);
+  private
+      FItems,
+      FItemsSent: TItems;
+      LRegAxiom: TRegistry;
+      sRegistryRoot: string;
+
+      procedure DoItemAdd(ASender: TObject; const Item: IDispatch);
+      procedure DoSave;
+  protected
+  public
+   ol2010: Outlook2010._Application;
+  end;
+
+var
+   AddInModule: TAddInModule;
+   bSaveSentEmail: boolean;
+   bSaveIncomingAlways: boolean;
+   dmConnection: TdmSaveDoc;
+
+
+
+implementation
+
+{$R *.dfm}
+
+uses
+   OutlookUnit, Word_TLB, SaveDocDetails, dxCore, LoginDetails, SaveDocFunc;
+
+procedure TAddInModule.adxCOMAddInModuleAddInBeginShutdown(Sender: TObject);
+begin
+   try
+      if Assigned(dmConnection) then
+      begin
+         dmConnection.orsInsight.Disconnect;
+         dmConnection.Free;
+      end;
+   except
+//
+   end;
+end;
+
+procedure TAddInModule.adxCOMAddInModuleAddInInitialize(Sender: TObject);
+begin
+    AddInModule := Self;
+end;
+
+procedure TAddInModule.adxCOMAddInModuleAddInStartupComplete(Sender: TObject);
+var
+   IFolderInbox: Outlook2000.MAPIFolder;
+   IFolderSent: Outlook2000.MAPIFolder;
+begin
+   FItems := nil;
+   FItemsSent := nil;
+   dmConnection := nil;
+
+   try
+      dmConnection := TdmSaveDoc.Create(AddInModule);
+      dmConnection.GetUserID;
+   finally
+      LregAxiom := TRegistry.Create;
+      try
+         LregAxiom.RootKey := HKEY_CURRENT_USER;
+         LregAxiom.OpenKey(csRegistryRoot, False);
+         bSaveSentEmail := (LregAxiom.ReadString('SaveSentEmail') = 'Y');
+         if (not LregAxiom.KeyExists('SaveIncomingAlways')) then
+         begin
+             LregAxiom.WriteString('SaveIncomingAlways','Y');
+//             bSaveIncomingAlways := true;
+         end
+         else
+             bSaveIncomingAlways := (LregAxiom.ReadString('SaveIncomingAlways') = 'Y');
+         if (LregAxiom.ReadString('ShowMatterList') = 'Y') then
+         begin
+//            adxOlFormsManager.Items[0].ExplorerLayout := elBottomNavigationPane;
+         end
+         else
+//            adxOlFormsManager.Items[0].ExplorerLayout := elUnknown;
+      finally
+         LregAxiom.Free;
+      end;
+
+      if Assigned(OutlookApp) then
+      begin
+         IFolderSent := OutlookApp.GetNamespace('MAPI').GetDefaultFolder(olFolderSentMail);
+         if Assigned(IFolderSent) then
+         try
+            FItemsSent := TItems.Create(nil);
+            FItemsSent.ConnectTo(IFolderSent.Items);
+            FItemsSent.OnItemAdd := DoItemAdd;
+         finally
+            IFolderSent := nil;
+         end;
+      end;
+   end;
+end;
+
+procedure TAddInModule.adxOutlookAppEvents1NewMailEx(ASender: TObject;
+  const EntryIDCollection: WideString);
+var
+   Mail: Outlook2000.MailItem;
+   ns : Outlook2000._NameSpace;
+   item: IDispatch;
+   i: integer;
+   entryIds: TStringList;
+   obj: olevariant;
+   StoreId: olevariant;
+   IFolderSent: Outlook2000.MAPIFolder;
+begin
+   try
+      ns := nil;
+      obj := null;
+      try
+         if (bSaveIncomingAlways) then
+         begin
+           ns := OutlookApp.GetNamespace('MAPI');
+           entryIds := TstringList.Create;
+           Split(EntryIDCollection, ',',entryIds);
+           for i := 0 to entryIds.Count - 1 do
+           begin
+            try
+               if (VarIsNull(StoreId) = False) then
+               begin
+                  try
+                     item := ns.GetItemFromID(entryIds.Strings[i], StoreId);
+                  finally
+                     if Assigned(Item) then
+                     begin
+                        item.QueryInterface(IID__MailItem, Mail);
+                        if (Assigned(Mail)) then
+                        begin
+                           IFolderSent := Mail.Parent as Outlook2000.MAPIFolder;
+                           if (Assigned(Mail)) then
+                           begin
+                                try
+                                   SentMessage(Mail);
+                                finally
+                                   Mail := nil;
+                                end;
+                           end;
+                        end;
+                     end;
+                  end;
+               end;
+            finally
+               if Assigned(item) then
+                  item := nil;
+            end;
+          end;
+        end;
+      finally
+         if Assigned(IFolderSent) then
+           IFolderSent := nil;
+         ns := nil;
+      end;
+   except
+
+   end;
+end;
+
+procedure TAddInModule.adxRibbonContextMenu1Controls1Click(Sender: TObject;
+  const RibbonControl: IRibbonControl);
+var
+   Control: IRibbonControl;
+   Document: _Document;
+   IWindow: IDispatch;
+begin
+   try
+      IWindow := HostApp.ActiveWindow;
+   except
+   end;
+   try
+      if IWindow <> nil then
+         DoSave;
+   finally
+      IWindow := nil;
+   end;
+
+end;
+
+procedure TAddInModule.adxRibbonTab1Controls0Controls0Click(Sender: TObject;
+  const RibbonControl: IRibbonControl);
+var
+   bLoginSetup: integer;
+   frmLoginSetup: TfrmLoginSetup;
+begin
+   try
+      try
+         if Assigned(frmLoginSetup) then
+            frmLoginSetup := nil;
+         frmLoginSetup := TfrmLoginSetup.Create(nil);
+         if HostType = ohaOutlook then
+            frmLoginSetup.IsOutlook := True;
+         bLoginSetup := frmLoginSetup.ShowModal;
+      finally
+         frmLoginSetup.Free;
+         frmLoginSetup := nil;
+         if Assigned(dmConnection) then
+         begin
+            if dmConnection.orsInsight.Connected = True then
+               dmConnection.orsInsight.Disconnect;
+         end
+         else
+            dmConnection := TdmSaveDoc.Create(AddInModule);
+         if dmConnection.orsInsight.Connected = False then dmConnection.GetUserID;
+      end;
+   except
+//
+   end;
+end;
+
+procedure TAddInModule.adxRibbonTab1Controls1Controls0Click(Sender: TObject;
+  const RibbonControl: IRibbonControl);
+var
+   Control: IRibbonControl;
+   Document: _Document;
+   IWindow: IDispatch;
+begin
+   try
+      IWindow := HostApp.ActiveWindow;
+   except
+   end;
+   try
+      if IWindow <> nil then
+         DoSave;
+   finally
+      IWindow := nil;
+   end;
+end;
+
+procedure TAddInModule.DoItemAdd(ASender: TObject; const Item: IDispatch);
+var
+   Mail: Outlook2000.MailItem;
+   IFolderSent: MAPIFolder;
+begin
+   try
+      if HostType = ohaOutlook then
+      begin
+         if Assigned(Item) then
+         begin
+            Item.QueryInterface(IID__MailItem, Mail);
+            if Assigned(Mail) then
+            begin
+               try
+                  IFolderSent := Mail.Parent as MAPIFolder;
+                  if ((IFolderSent.Name = 'Sent Items') or
+                     (IFolderSent.Name = 'Sent Mail')) then
+                  begin
+                     try
+                        SentMessage(Mail, True);
+                     finally
+                        Mail := nil;
+                     end;
+                  end;
+               finally
+                  IFolderSent := nil;
+               end;
+            end;
+         end;
+      end;
+   except
+//
+   end;
+end;
+
+procedure TAddInModule.DoSave;
+var
+   i, Count,
+   LAppType: Integer;
+   IProps: DocumentProperties;
+   IProp: DocumentProperty;
+   PropValue: OleVariant;
+   PropName: widestring;
+   item: IDispatch;
+   LIMail: Outlook2000.MailItem;
+   IContact: ContactItem;
+   IAppointment: AppointmentItem;
+   sel: Outlook2000.Selection;
+   lSubject: string;
+   ReceivedDate: TDateTime;
+   fmSaveDocDetails: TfrmSaveDocDetails;
+begin
+   try
+      sel := OutlookApp.ActiveExplorer.Selection;
+   except
+   //
+   end;
+
+   if (sel <> nil) then
+   begin
+      for I := 1 to OutlookApp.ActiveExplorer.Selection.Count do
+      begin
+         item := sel.Item(I);
+         item.QueryInterface(IID__MailItem, LIMail);
+         if LIMail <> nil then
+         begin
+            lSubject := LIMail.Subject;
+            ReceivedDate := LIMail.ReceivedTime;
+         end
+         else
+         begin
+            Exit;
+         end;
+
+         try
+            FreeAndNil(fmSaveDocDetails);
+            fmSaveDocDetails := TfrmSaveDocDetails.Create(nil);
+            fmSaveDocDetails.AppType := LAppType;
+
+            fmSaveDocDetails.MailSubject := lSubject;
+            fmSaveDocDetails.ReceivedDate := ReceivedDate;
+            fmSaveDocDetails.TimeNarration := DateTimeToStr(ReceivedDate) + ' ' + lSubject;
+
+            fmSaveDocDetails.LadxLCID := adxLCID;
+            fmSaveDocDetails.IMail := LIMail;
+
+            fmSaveDocDetails.ShowModal;
+         finally
+            FreeAndNil(fmSaveDocDetails);
+
+            LIMail := nil;
+         end;
+      end;
+   end;
+end;
+
+initialization
+  TadxFactory.Create(ComServer, TInsight_Addin_for_Outlook, CLASS_Insight_Addin_for_Outlook, TAddInModule);
+
+    dxInitialize();
+
+  {initialize my Critical section.}
+//   InitializeCriticalSection(CS);
+
+
+finalization
+  // unload
+  dxFinalize();
+  {finalize my Critical section.}
+//   DeleteCriticalSection(CS);
+
+end.

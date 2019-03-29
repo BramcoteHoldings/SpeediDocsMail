@@ -1,0 +1,19 @@
+library SpeediDocsMail;
+
+uses
+  ComServ,
+  SpeediDocsMail_TLB in 'C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail_TLB.pas',
+  SpeediDocsMail_IMPL in 'C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail_IMPL.pas' {AddInModule: TAddInModule} {Insight_Addin_for_Outlook: CoClass};
+
+exports
+  DllGetClassObject,
+  DllCanUnloadNow,
+  DllRegisterServer,
+  DllUnregisterServer;
+
+{$R *.TLB}
+
+{$R *.RES}
+
+begin
+end.
