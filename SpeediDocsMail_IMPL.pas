@@ -11,6 +11,8 @@ uses
   const
    csRegistryRoot = 'Software\Colateral\Axiom\SpeediDocs';
 
+   olPosition = 1;
+
 type
   TInsight_Addin_for_Outlook = class(TadxAddin, IInsight_Addin_for_Outlook)
   end;
@@ -38,6 +40,10 @@ type
     procedure adxRibbonContextMenu1Controls1PropertyChanging(Sender: TObject;
       PropertyType: TadxRibbonControlPropertyType; var Value: OleVariant;
       const Context: IDispatch);
+    procedure adxRibbonTab1Controls2Controls0Click(Sender: TObject;
+      const RibbonControl: IRibbonControl);
+    procedure adxRibbonTab1Controls2Controls1Click(Sender: TObject;
+      const RibbonControl: IRibbonControl);
   private
       FItems,
       FItemsSent: TItems;
@@ -67,7 +73,7 @@ implementation
 
 uses
    OutlookUnit, Word_TLB, SaveDocDetails, dxCore, LoginDetails, SaveDocFunc,
-   NewFee, vcl.controls;
+   NewFee, vcl.controls, DocList;
 
 procedure TAddInModule.adxCOMAddInModuleAddInBeginShutdown(Sender: TObject);
 begin
@@ -91,10 +97,12 @@ procedure TAddInModule.adxCOMAddInModuleAddInStartupComplete(Sender: TObject);
 var
    IFolderInbox: Outlook2000.MAPIFolder;
    IFolderSent: Outlook2000.MAPIFolder;
+   sKeyValue: string;
 begin
    FItems := nil;
    FItemsSent := nil;
    dmConnection := nil;
+   bSaveIncomingAlways := False;
 
    try
       dmConnection := TdmSaveDoc.Create(AddInModule);
@@ -105,13 +113,14 @@ begin
          LregAxiom.RootKey := HKEY_CURRENT_USER;
          LregAxiom.OpenKey(csRegistryRoot, False);
          bSaveSentEmail := (LregAxiom.ReadString('SaveSentEmail') = 'Y');
-         if (not LregAxiom.KeyExists('SaveIncomingAlways')) then
+         sKeyValue := LregAxiom.ReadString('SaveIncomingAlways');
+         if (sKeyValue = '') then
          begin
              LregAxiom.WriteString('SaveIncomingAlways','Y');
              bSaveIncomingAlways := true;
          end
          else
-             bSaveIncomingAlways := (LregAxiom.ReadString('SaveIncomingAlways') = 'Y');
+             bSaveIncomingAlways := (sKeyValue = 'Y');
          if (LregAxiom.ReadString('ShowMatterList') = 'Y') then
          begin
 //            adxOlFormsManager.Items[0].ExplorerLayout := elBottomNavigationPane;
@@ -155,41 +164,41 @@ begin
       try
          if (bSaveIncomingAlways) then
          begin
-           ns := OutlookApp.GetNamespace('MAPI');
-           entryIds := TstringList.Create;
-           Split(EntryIDCollection, ',',entryIds);
-           for i := 0 to entryIds.Count - 1 do
-           begin
-            try
-               if (VarIsNull(StoreId) = False) then
-               begin
-                  try
-                     item := ns.GetItemFromID(entryIds.Strings[i], StoreId);
-                  finally
-                     if Assigned(Item) then
-                     begin
-                        item.QueryInterface(IID__MailItem, Mail);
-                        if (Assigned(Mail)) then
+            ns := OutlookApp.GetNamespace('MAPI');
+            entryIds := TstringList.Create;
+            Split(EntryIDCollection, ',',entryIds);
+            for i := 0 to entryIds.Count - 1 do
+            begin
+               try
+                  if (VarIsNull(StoreId) = False) then
+                  begin
+                     try
+                        item := ns.GetItemFromID(entryIds.Strings[i], StoreId);
+                     finally
+                        if Assigned(Item) then
                         begin
-                           IFolderSent := Mail.Parent as Outlook2000.MAPIFolder;
+                           item.QueryInterface(IID__MailItem, Mail);
                            if (Assigned(Mail)) then
                            begin
-                               try
-                                  SentMessage(Mail, True);
-                               finally
-                                  Mail := nil;
-                               end;
+                              IFolderSent := Mail.Parent as Outlook2000.MAPIFolder;
+                              if (Assigned(Mail)) then
+                              begin
+                                 try
+                                    SentMessage(Mail, True);
+                                 finally
+                                    Mail := nil;
+                                 end;
+                              end;
                            end;
                         end;
                      end;
                   end;
+               finally
+                  if Assigned(item) then
+                     item := nil;
                end;
-            finally
-               if Assigned(item) then
-                  item := nil;
             end;
-          end;
-        end;
+         end;
       finally
          if Assigned(IFolderSent) then
            IFolderSent := nil;
@@ -231,7 +240,7 @@ begin
       if (PropertyType = rcptvisible) then
       begin
          btn := OutlookApp.ActiveExplorer.CurrentFolder.Name;
-         if (pos('Inbox', btn) > 0 ) then
+         if ((pos('Calendar', btn) = 0 ) ) then
             Value := True
          else
             Value := False;
@@ -297,6 +306,7 @@ begin
                fmNewFee := TfrmNewFee.Create(nil);
                fmNewFee.sSubject := Appointment.Subject;
                fmNewFee.nUnits := FloatToStrF((((Appointment.End_ - Appointment.Start)*24)*60) /60*10, ffNumber, 0,0 );
+               fmNewFee.dtpCreated.Date := Appointment.Start;
                try
                   if fmNewFee.ShowModal = mrOk then
                   begin
@@ -365,6 +375,159 @@ begin
          DoSave;
    finally
       IWindow := nil;
+   end;
+end;
+
+procedure TAddInModule.adxRibbonTab1Controls2Controls0Click(Sender: TObject;
+  const RibbonControl: IRibbonControl);
+var
+   lnmatter,
+   lDocID,
+   I: integer;
+   FFileID,
+   lDocs: string;
+   fmDocList: TfrmDocList;
+   Mail: Outlook2000.MailItem;
+   sel: Outlook2000.Selection;
+   Inspector: Outlook2000.Inspector;
+   Explorer: Outlook2000.Explorer;
+   item: IDispatch;
+   lAttachments: Outlook2000.Attachments;
+   lPath,
+   lDocName: OLEVariant;
+begin  // insert bhl insight document as an attachment
+   if Assigned(fmDocList) then
+   begin
+      fmDocList := nil;
+   end;
+
+   case HostType of
+      ohaOutlook:
+         begin
+            fmDocList := TfrmDocList.Create(nil);
+            try
+               if (fmDocList.ShowModal = mrOK) then
+               begin
+                  try
+                     Inspector := OutlookApp.ActiveInspector;
+                  except
+                  end;
+
+                  if Inspector <> nil then
+                  begin
+                     Mail := Inspector.CurrentItem as Outlook2000.MailItem;
+                     if (Mail <> nil) then
+                     begin
+                        with fmDocList.tvDocList.DataController do
+                        begin
+                           for I := 0 to (GetSelectedCount - 1) do
+                           begin
+                              DataSet.Bookmark := GetSelectedBookmark(I);
+
+                              lnMatter := DataSet.FieldValues['NMATTER'];
+                              FFileID  := DataSet.FieldValues['FILEID'];
+                              lDocID   := DataSet.FieldValues['DOCID'];
+                              lPath    := DataSet.FieldValues['PATH'];
+                              lDocName := DataSet.FieldValues['DOC_NAME'];
+
+                              if lDocs <> '' then
+                                 lDocs := lDocs + ', ';
+                              lDocs := lDocs + lDocName;
+                              lAttachments := Mail.Attachments;
+                              lAttachments.Add(lPath, olByValue, olPosition, lDocName);
+//                           Mail.Save;
+                           end;
+                        end;
+                     end;
+                     if Mail.Subject = '' then
+                        Mail.Subject := lDocs + '  #'+FFileID
+                     ///else
+                        //Mail.Subject := Mail.Subject + '  #'+FFileID;
+                  end;
+               end;
+            finally
+               dmConnection.qryDocs.Close;
+               FreeAndNil(fmDocList);
+            end;
+         end;
+   end;
+end;
+
+procedure TAddInModule.adxRibbonTab1Controls2Controls1Click(Sender: TObject;
+  const RibbonControl: IRibbonControl);
+var
+   lnmatter,
+   lDocID,
+   i: integer;
+   FFileID,
+   MsgBody,
+   ADisp_Path,
+   CurMsgBody,
+   tmpFileName: string;
+   fmDocList: TfrmDocList;
+   Mail: Outlook2000.MailItem;
+   sel: Outlook2000.Selection;
+   Inspector: Outlook2000.Inspector;
+   item: IDispatch;
+   lAttachments: Outlook2000.Attachments;
+   lPath,
+   lDocName: OLEVariant;
+begin
+   if Assigned(fmDocList) then
+   begin
+      fmDocList := nil;
+   end;
+
+   case HostType of
+      ohaOutlook:
+         begin
+            fmDocList := TfrmDocList.Create(nil);
+            try
+               if (fmDocList.ShowModal = mrOK) then
+               begin
+                  try
+                     Inspector := OutlookApp.ActiveInspector;
+                  except
+                  end;
+
+                  if Inspector <> nil then
+                  begin
+                     Mail := Inspector.CurrentItem as Outlook2000.MailItem;
+                     if (Mail <> nil) then
+                     begin
+                        with fmDocList.tvDocList.DataController do
+                        begin
+                           MsgBody := '<html><head></head><h1>Documents for action</h1><body>';
+                           for I := 0 to (GetSelectedCount - 1) do
+                           begin
+                              DataSet.Bookmark := GetSelectedBookmark(I);
+
+                              lnMatter := DataSet.FieldValues['NMATTER'];
+                              FFileID  := DataSet.FieldValues['FILEID'];
+                              lDocID   := DataSet.FieldValues['DOCID'];
+                              lPath    := DataSet.FieldValues['PATH'];
+                              lDocName := DataSet.FieldValues['DOC_NAME'];
+
+                              if tmpFileName <> '' then
+                                 tmpFileName := tmpFileName + ', ';
+                              ADisp_Path := lPath;
+
+                              tmpFileName := tmpFileName + TableString('matter','nmatter',lnMatter ,'title') +' - ' + lDocName;
+
+                              MsgBody := MsgBody + '<p><a href="file:///' + ADisp_Path+ '">'+ ExtractFileName(ADisp_Path) +'</a></p>';
+                           end;
+                        end;
+                        MsgBody := MsgBody + '</body></html>';
+                        Mail.HTMLBody := MsgBody;
+                        Mail.Subject := tmpFileName + '  #'+FFileID;
+                     end;
+                  end;
+               end;
+            finally
+               dmConnection.qryDocs.Close;
+               FreeAndNil(fmDocList);
+            end;
+         end;
    end;
 end;
 
@@ -465,41 +628,46 @@ begin
             FreeAndNil(fmSaveDocDetails);
             LIMail := nil;
          end;
-      end
+      end;
+
+      if (liTotalSelected > 200) then
+         MsgInfo(IntToStr(liTotalSelected) + ' eMails selected. You should select 200 or less.')
       else
-      if liTotalSelected > 1 then
       begin
-         lArrayCount := 0;
-         SetLength(LDocList, 250);
-         FreeAndNil(fmSaveDocDetails);
-         fmSaveDocDetails := TfrmSaveDocDetails.Create(nil);
-         for I := 1 to liTotalSelected do
+         if (liTotalSelected > 1) and (liTotalSelected <= 200) then
          begin
-            item := sel.Item(I);
-            item.QueryInterface(IID__MailItem, LIMail);
-            if LIMail <> nil then
+            lArrayCount := 0;
+            SetLength(LDocList, 250);
+            FreeAndNil(fmSaveDocDetails);
+            fmSaveDocDetails := TfrmSaveDocDetails.Create(nil);
+            for I := 1 to liTotalSelected do
             begin
-               fmSaveDocDetails.DocList[lArrayCount] := LImail;
-            end
-            else
-            begin
-               Exit;
+               item := sel.Item(I);
+               item.QueryInterface(IID__MailItem, LIMail);
+               if LIMail <> nil then
+               begin
+                  fmSaveDocDetails.DocList[lArrayCount] := LImail;
+               end
+               else
+               begin
+                  Exit;
+               end;
+               inc(lArrayCount);
             end;
-            inc(lArrayCount);
-         end;
-         if Length(fmSaveDocDetails.DocList) > 1 then
-         begin
-            fmSaveDocDetails.AppType := LAppType;
+            if Length(fmSaveDocDetails.DocList) > 1 then
+            begin
+               fmSaveDocDetails.AppType := LAppType;
 
-//            fmSaveDocDetails.MailSubject := lSubject;
-//            fmSaveDocDetails.ReceivedDate := ReceivedDate;
-//            fmSaveDocDetails.TimeNarration := DateTimeToStr(ReceivedDate) + ' ' + lSubject;
-            fmSaveDocDetails.dFileCount := liTotalSelected;
+//               fmSaveDocDetails.MailSubject := lSubject;
+//               fmSaveDocDetails.ReceivedDate := ReceivedDate;
+//               fmSaveDocDetails.TimeNarration := DateTimeToStr(ReceivedDate) + ' ' + lSubject;
+               fmSaveDocDetails.dFileCount := liTotalSelected;
 
-            fmSaveDocDetails.LadxLCID := adxLCID;
-//            fmSaveDocDetails.IMail := LIMail;
+               fmSaveDocDetails.LadxLCID := adxLCID;
+//               fmSaveDocDetails.IMail := LIMail;
 
-            fmSaveDocDetails.ShowModal;
+               fmSaveDocDetails.ShowModal;
+            end;
          end;
       end;
    end;

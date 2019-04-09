@@ -200,6 +200,7 @@ object frmLoginSetup: TfrmLoginSetup
       Height = 17
       Caption = 'Prompt to save Incoming Email'
       TabOrder = 5
+      OnClick = chkSaveIncomingAlwaysClick
     end
   end
   object btnCancel: TButton

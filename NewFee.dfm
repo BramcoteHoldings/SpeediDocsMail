@@ -4,7 +4,7 @@ object frmNewFee: TfrmNewFee
   BorderStyle = bsDialog
   Caption = 'New Fee'
   ClientHeight = 455
-  ClientWidth = 779
+  ClientWidth = 437
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -521,7 +521,7 @@ object frmNewFee: TfrmNewFee
   object StatusBar: TStatusBar
     Left = 0
     Top = 436
-    Width = 779
+    Width = 437
     Height = 19
     BorderWidth = 2
     Panels = <
@@ -530,8 +530,7 @@ object frmNewFee: TfrmNewFee
       end>
     ParentFont = True
     UseSystemFont = False
-    ExplicitTop = 434
-    ExplicitWidth = 384
+    ExplicitWidth = 779
   end
   object qryMRUList: TOraQuery
     Session = dmSaveDoc.orsInsight

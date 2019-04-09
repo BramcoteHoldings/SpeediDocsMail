@@ -157,6 +157,9 @@ begin
 
       qFeeEarners.Open;
 
+      if dtpCreated.Date = strtodate('30/12/1899') then
+         dtpCreated.Date := Now;
+
       qryEmpDept.Open;
       qryFeeBasisList.Open;
       qryTaxType.Open;

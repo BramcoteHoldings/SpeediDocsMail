@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2019/03/21 19:32:26.000.706,C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail.dproj=D:\Insight_XE4_Source\SpeediDocsMail\SpeediDocsMail.dproj</Transaction>
-    <Transaction>2019/03/21 19:32:53.000.530,C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail_IMPL.pas=D:\Insight_XE4_Source\SpeediDocsMail\SpeediDocsMail_IMPL.pas</Transaction>
-    <Transaction>2019/03/21 19:32:53.000.531,C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail_IMPL.dfm=D:\Insight_XE4_Source\SpeediDocsMail\SpeediDocsMail_IMPL.dfm</Transaction>
-    <Transaction>2019/03/21 19:33:21.000.338,C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail_TLB.pas=D:\Insight_XE4_Source\SpeediDocsMail\SpeediDocsMail_TLB.pas</Transaction>
-    <Transaction>2019/03/21 19:33:48.000.174,C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail.ridl=D:\Insight_XE4_Source\SpeediDocsMail\SpeediDocsMail.ridl</Transaction>
+    <Transaction>2019/03/21 19:32:26.000.706,D:\Insight_XE4_Source\SpeediDocsMail\SpeediDocsMail.dproj=C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail.dproj</Transaction>
+    <Transaction>2019/03/21 19:32:53.000.530,D:\Insight_XE4_Source\SpeediDocsMail\SpeediDocsMail_IMPL.pas=C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail_IMPL.pas</Transaction>
+    <Transaction>2019/03/21 19:32:53.000.531,D:\Insight_XE4_Source\SpeediDocsMail\SpeediDocsMail_IMPL.dfm=C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail_IMPL.dfm</Transaction>
+    <Transaction>2019/03/21 19:33:21.000.338,D:\Insight_XE4_Source\SpeediDocsMail\SpeediDocsMail_TLB.pas=C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail_TLB.pas</Transaction>
+    <Transaction>2019/03/21 19:33:48.000.174,D:\Insight_XE4_Source\SpeediDocsMail\SpeediDocsMail.ridl=C:\Users\Alex Straube\Documents\RAD Studio\Projects\SpeediDocsMail.ridl</Transaction>
     <Transaction>2019/03/21 22:52:32.000.650,=D:\Insight_XE4_Source\SpeediDocsMail\OutlookUnit.pas</Transaction>
     <Transaction>2019/03/21 22:58:10.000.808,=D:\Insight_XE4_Source\SpeediDocsMail\dmSaveDoc.pas</Transaction>
     <Transaction>2019/03/21 22:58:34.000.638,=D:\Insight_XE4_Source\SpeediDocsMail\SaveDocFunc.pas</Transaction>

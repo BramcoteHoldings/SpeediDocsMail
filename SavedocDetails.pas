@@ -17,7 +17,8 @@ uses
   cxDBLookupEdit, cxDBLookupComboBox, Outlook2000, cxImageComboBox, cxSpinEdit,
   DBAccess, Ora, MemDS, cxMemo, cxButtonEdit, JvBaseDlg, JvBrowseFolder,
   dxLayoutcxEditAdapters, dxLayoutControlAdapters, dxLayoutContainer, cxClasses,
-  dxLayoutControl, cxLabel, Vcl.Dialogs, cxCheckBox, System.ImageList, Outlook2010;
+  dxLayoutControl, cxLabel, Vcl.Dialogs, cxCheckBox, System.ImageList, Outlook2010,
+  dxSkinsCore, dxSkinOffice2013DarkGray;
 
 const
      CUSTOMPROPS: array[0..10] of string = ('MatterNo','DocID','Prec_Category','Prec_Classification','Doc_Keywords','Doc_Precedent','Doc_FileName','Doc_Author','Saved_in_DB', 'Doc_Title','Portal_Access');
@@ -439,6 +440,8 @@ begin
       lblProgress.Caption := '';
    end;
    cmbAuthor.EditValue := TableString('EMPLOYEE','USER_NAME',UpperCase(dmConnection.UserID), 'CODE');
+   Application.ProcessMessages;
+
  //  frmSaveDocDetails.BringToFront;
 //   frmSaveDocDetails.Activate;
 //   SetForegroundWindow(frmSaveDocDetails.Handle);

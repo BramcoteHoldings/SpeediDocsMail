@@ -11,7 +11,8 @@ uses SpeediDocsMail_IMPL, ActiveX, ComObj, Variants, System.SysUtils,
 const
    WM_NEWMESSAGE = WM_USER + 1;
 //  NPR_FILEID: TRwMapiNamedProperty = (PropSetID: '{001b04db-360a-424e-ae80-3f1fce8c7458}'; PropID: $8000; PropName: 'NPR_FILEID'; PropType: PT_STRING8; PropKind: MNID_ID);
-
+   METHOD = 'http://schemas.microsoft.com/mapi/proptag/0x37050003';
+   FLAGS = 'http://schemas.microsoft.com/mapi/proptag/0x37140003';
 
    function SaveOutlookMessage(DocSequence: string; rgStorageItemIndex: integer; ATxtDocPath: string;
                       ANewCopy, AOverwrite: boolean; AFileID, AAuthor, ADocName: string;
@@ -99,15 +100,15 @@ var
    lParentFolder: MapiFolder;
    ns : Outlook2000._NameSpace;
    lMailCopy: Outlook2000.MailItem;
-   Flags
-   ,AType: variant;
+   AType: variant;
    lRecipients: Outlook2000.Recipients;
    FProp: Outlook2010.UserProperty;
    FPropPrev: Outlook2010.UserProperty;
    Categories:    string;
    OldDocName:    string;
-   bCategoriseEmails: boolean;
-   ADocumentSaved: boolean;
+   bCategoriseEmails,
+   ADocumentSaved,
+   bContinueAttach: boolean;
 begin
    x := 0;
    if AFromExplorer then
@@ -339,17 +340,38 @@ begin
 
             if SystemString('EMAIL_SEPARATE_ATTACHMENTS') = 'Y' then
             begin
+               bContinueAttach := False;
                lAttachments := FMail.Attachments;
                for iCount := 1 to lAttachments.Count do
                begin
+                  bContinueAttach := False;
                   Attachment := lAttachments.Item(iCount);
 
-                  flags := lAttachments.Item(iCount).PropertyAccessor.GetProperty('http://schemas.microsoft.com/mapi/proptag/0x37140003');
+                  // if this is a plain text email, every attachment is a non-inline attachment
+                  if ((FMail.BodyFormat = olFormatPlain) and (FMail.Attachments.Count > 0)) then
+                     bContinueAttach := True
+                  else
+                  // if the body format is RTF ...
+                  if (FMail.BodyFormat = olFormatRichText) then
+                  begin
+                     // add every attachment where the PR_ATTACH_METHOD property is NOT 6 (ATTACH_OLE)
+                     if (integer(Attachment.PropertyAccessor.GetProperty(METHOD)) <> 6) then
+                        bContinueAttach := True;
+                  end
+                  else
+                  // if the body format is HTML ...
+                  if (FMail.BodyFormat = olFormatHTML) then
+                  begin
+                     // add every attachment where the ATT_MHTML_REF property is NOT 4 (ATT_MHTML_REF)
+                     if (pos(attachment.FileName, FMail.HTMLBody) = 0) then
+//                     (integer(Attachment.PropertyAccessor.GetProperty(FLAGS)) <> 4) then
+                        bContinueAttach := True;
+                  end;
 
                   //To ignore embedded attachments -
-                  if (flags <> 4) then
+                  if (bContinueAttach) then
                   begin
-                     AType := lAttachments.Item(iCount).Type;
+                     AType := Attachment.Type;  //lAttachments.Item(iCount).Type;
                      DispName := Attachment.DisplayName;
 
                      if DispName = '' then
