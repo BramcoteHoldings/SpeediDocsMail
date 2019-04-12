@@ -2,7 +2,10 @@ object AddInModule: TAddInModule
   OldCreateOrder = True
   AddInName = 'Insight_Addin_for_Outlook'
   Description = 'Insight Addin for Outlook'
+  DisplayAlerts = True
+  RegisterForAllUsers = True
   SupportedApps = [ohaOutlook]
+  OnError = adxCOMAddInModuleError
   OnAddInInitialize = adxCOMAddInModuleAddInInitialize
   OnAddInStartupComplete = adxCOMAddInModuleAddInStartupComplete
   OnAddInBeginShutdown = adxCOMAddInModuleAddInBeginShutdown

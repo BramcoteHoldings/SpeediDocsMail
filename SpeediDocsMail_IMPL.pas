@@ -44,6 +44,7 @@ type
       const RibbonControl: IRibbonControl);
     procedure adxRibbonTab1Controls2Controls1Click(Sender: TObject;
       const RibbonControl: IRibbonControl);
+    procedure adxCOMAddInModuleError(const E: Exception; var Handled: Boolean);
   private
       FItems,
       FItemsSent: TItems;
@@ -143,6 +144,17 @@ begin
             IFolderSent := nil;
          end;
       end;
+   end;
+end;
+
+procedure TAddInModule.adxCOMAddInModuleError(const E: Exception;
+  var Handled: Boolean);
+begin
+   try
+      WriteLog('Addin Exception: '  + E.Message);
+      Handled := True;
+   except
+      // Ignore
    end;
 end;
 
