@@ -6,7 +6,8 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Registry, SpeediDocsMail_IMPL, Vcl.ComCtrls, SaveDocFunc,
   Vcl.Buttons, cxGraphics, cxControls, cxLookAndFeels,
-  cxLookAndFeelPainters, cxContainer, cxEdit, cxCheckBox;
+  cxLookAndFeelPainters, cxContainer, cxEdit, cxCheckBox, dxSkinsCore,
+  dxSkinOffice2013DarkGray;
 
 type
   TfrmLoginSetup = class(TForm)
@@ -25,7 +26,7 @@ type
     edPort: TEdit;
     GroupBox2: TGroupBox;
     chkShowMatterList: TCheckBox;
-    chkSaveIncoming: TCheckBox;
+    chkSaveIncomingInSeparateFolder: TCheckBox;
     chkSaveOutgoing: TCheckBox;
     chkSaveSentEmail: TCheckBox;
     btnCancel: TButton;
@@ -38,13 +39,14 @@ type
     BitBtn2: TBitBtn;
     OpenDialog: TOpenDialog;
     chkUseDirectConn: TcxCheckBox;
+    chkPromptToSave: TCheckBox;
     chkSaveIncomingAlways: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure chkShowMatterListClick(Sender: TObject);
-    procedure chkSaveIncomingClick(Sender: TObject);
+    procedure chkSaveIncomingInSeparateFolderClick(Sender: TObject);
     procedure chkSaveOutgoingClick(Sender: TObject);
     procedure chkSaveSentEmailClick(Sender: TObject);
-    procedure chkSaveIncomingAlwaysClick(Sender: TObject);
+    procedure chkPromptToSaveClick(Sender: TObject);
     procedure chkRemoveEmailClick(Sender: TObject);
     procedure chkLogEventsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -52,6 +54,7 @@ type
     procedure BitBtn1Click(Sender: TObject);
     procedure BitBtn2Click(Sender: TObject);
     procedure chkUseDirectConnClick(Sender: TObject);
+    procedure chkSaveIncomingAlwaysClick(Sender: TObject);
   private
     { Private declarations }
      LRegAxiom: TRegistry;
@@ -156,6 +159,27 @@ begin
    Close;
 end;
 
+procedure TfrmLoginSetup.chkSaveIncomingAlwaysClick(Sender: TObject);
+begin
+   LregAxiom := TRegistry.Create;
+   try
+      LregAxiom.RootKey := HKEY_CURRENT_USER;
+      LregAxiom.OpenKey(csRegistryRoot, True);
+      if (chkSaveIncomingAlways.Checked = True) then
+      begin
+         LregAxiom.WriteString('SaveIncomingAlways','Y');
+         bSaveIncomingAlways := True;
+      end
+      else
+      begin
+         LregAxiom.WriteString('SaveIncomingAlways','N');
+         bSaveIncomingAlways := False;
+      end;
+   finally
+      LregAxiom.Free;
+   end;
+end;
+
 procedure TfrmLoginSetup.chkLogEventsClick(Sender: TObject);
 begin
    LregAxiom := TRegistry.Create;
@@ -196,19 +220,19 @@ begin
    end;
 end;
 
-procedure TfrmLoginSetup.chkSaveIncomingClick(Sender: TObject);
+procedure TfrmLoginSetup.chkSaveIncomingInSeparateFolderClick(Sender: TObject);
 begin
    LregAxiom := TRegistry.Create;
    try
       LregAxiom.RootKey := HKEY_CURRENT_USER;
       LregAxiom.OpenKey(csRegistryRoot, True);
-      if (chkSaveIncoming.Checked = True) then
+      if (chkSaveIncomingInSeparateFolder.Checked = True) then
       begin
-         LregAxiom.WriteString('SaveIncomingEmails','Y');
+         LregAxiom.WriteString('SaveIncomingEmailsInSeparateFolder','Y');
       end
       else
       begin
-         LregAxiom.WriteString('SaveIncomingEmails','N');
+         LregAxiom.WriteString('SaveIncomingEmailsInSeparateFolder','N');
       end;
    finally
       LregAxiom.Free;
@@ -255,21 +279,21 @@ begin
    end;
 end;
 
-procedure TfrmLoginSetup.chkSaveIncomingAlwaysClick(Sender: TObject);
+procedure TfrmLoginSetup.chkPromptToSaveClick(Sender: TObject);
 begin
    LregAxiom := TRegistry.Create;
    try
       LregAxiom.RootKey := HKEY_CURRENT_USER;
       LregAxiom.OpenKey(csRegistryRoot, True);
-      if (chkSaveIncomingAlways.Checked = True) then
+      if (chkPromptToSave.Checked = True) then
       begin
-         LregAxiom.WriteString('SaveIncomingAlways','Y');
-         bSaveIncomingAlways := True;
+         LregAxiom.WriteString('PromptToSaveIncomingEmails','Y');
+         bPromptToSaveIncoming := True;
       end
       else
       begin
-         LregAxiom.WriteString('SaveIncomingAlways','N');
-         bSaveIncomingAlways := False;
+         LregAxiom.WriteString('PromptToSaveIncomingEmails','N');
+         bPromptToSaveIncoming := False;
       end;
    finally
       LregAxiom.Free;
@@ -325,12 +349,13 @@ var
 begin
    StatusBar.Panels[0].Text := 'Ver: '+ ReportVersion(SysUtils.GetModuleName(HInstance)) + ' (' +DateTimeToStr(FileDateToDateTime(FileAge(SysUtils.GetModuleName(HInstance))))+')';
 
-   chkShowMatterList.OnClick       := nil;
-   chkSaveIncoming.OnClick         := nil;
-   chkSaveOutgoing.OnClick         := nil;
-   chkSaveSentEmail.OnClick        := nil;
-   chkLogEvents.OnClick            := nil;
-   chkSaveIncomingAlways.OnClick   := nil;
+   chkShowMatterList.OnClick                 := nil;
+   chkSaveIncomingInSeparateFolder.OnClick   := nil;
+   chkSaveOutgoing.OnClick                   := nil;
+   chkSaveSentEmail.OnClick                  := nil;
+   chkLogEvents.OnClick                      := nil;
+   chkSaveIncomingAlways.OnClick             := nil;
+   chkPromptToSave.OnClick                   := nil;
 
    LregAxiom := TRegistry.Create;
    try
@@ -362,22 +387,24 @@ begin
 
       edUserName.Text := LregAxiom.ReadString('User Name');
       edPassword.Text := LregAxiom.ReadString('Password');
-      chkUseDirectConn.Checked := (LregAxiom.ReadString('Net') = 'Y');
-      chkShowMatterList.Checked  := (LregAxiom.ReadString('ShowMatterList') = 'Y');
-      chkSaveIncoming.Checked    := (LregAxiom.ReadString('SaveIncomingEmails') = 'Y');
-      chkSaveOutgoing.Checked    := (LregAxiom.ReadString('SaveOutgoingEmails') = 'Y');
-      chkSaveSentEmail.Checked   := (LregAxiom.ReadString('SaveSentEmail') = 'Y');
-      chkSaveIncomingAlways.Checked   := (LregAxiom.ReadString('SaveIncomingAlways') = 'Y');
-      chkLogEvents.checked       := (LregAxiom.ReadString('EventLog') = 'Y');
-      edLogPath.Text             :=  LregAxiom.ReadString('LogFilePath');
+      chkUseDirectConn.Checked                  := (LregAxiom.ReadString('Net') = 'Y');
+      chkShowMatterList.Checked                 := (LregAxiom.ReadString('ShowMatterList') = 'Y');
+      chkSaveIncomingInSeparateFolder.Checked   := (LregAxiom.ReadString('SaveIncomingEmails') = 'Y');
+      chkSaveOutgoing.Checked                   := (LregAxiom.ReadString('SaveOutgoingEmails') = 'Y');
+      chkSaveSentEmail.Checked                  := (LregAxiom.ReadString('SaveSentEmail') = 'Y');
+      chkSaveIncomingAlways.Checked             := (LregAxiom.ReadString('SaveIncomingAlways') = 'Y');
+      chkLogEvents.checked                      := (LregAxiom.ReadString('EventLog') = 'Y');
+      edLogPath.Text                            :=  LregAxiom.ReadString('LogFilePath');
+      chkPromptToSave.Checked                   := (LregAxiom.ReadString('PromptToSaveIncomingEmails') = 'Y')
    finally
-     chkShowMatterList.OnClick   := chkShowMatterListClick;
-     chkSaveIncoming.OnClick     := chkSaveIncomingClick;
-     chkSaveOutgoing.OnClick     := chkSaveOutgoingClick;
-     chkSaveSentEmail.OnClick    := chkSaveSentEmailClick;
-     chkSaveIncomingAlways.OnClick    := chkSaveIncomingAlwaysClick;
-     chkLogEvents.OnClick        := chkLogEventsClick;
-     chkLogEvents.Enabled := (edLogPath.Text <> '');
+     chkShowMatterList.OnClick               := chkShowMatterListClick;
+     chkSaveIncomingInSeparateFolder.OnClick := chkSaveIncomingInSeparateFolderClick;
+     chkSaveOutgoing.OnClick                 := chkSaveOutgoingClick;
+     chkSaveSentEmail.OnClick                := chkSaveSentEmailClick;
+     chkSaveIncomingAlways.OnClick           := chkSaveIncomingAlwaysClick;
+     chkLogEvents.OnClick                    := chkLogEventsClick;
+     chkPromptToSave.OnClick                 := chkPromptToSaveClick;
+     chkLogEvents.Enabled                    := (edLogPath.Text <> '');
      LregAxiom.Free;
    end;
 end;

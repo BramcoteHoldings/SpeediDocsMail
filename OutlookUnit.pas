@@ -640,7 +640,7 @@ begin
       end
       else
       begin
-         if (ANewEmail = True) and (bSaveSentEmail = true) then
+         if (ANewEmail = True) and (bPromptToSaveIncoming = true) then
          begin
             try
                if not ContainsText(Categories, 'SpeediDocs') then

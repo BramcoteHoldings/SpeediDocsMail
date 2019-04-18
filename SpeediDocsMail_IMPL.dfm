@@ -9,6 +9,7 @@ object AddInModule: TAddInModule
   OnAddInInitialize = adxCOMAddInModuleAddInInitialize
   OnAddInStartupComplete = adxCOMAddInModuleAddInStartupComplete
   OnAddInBeginShutdown = adxCOMAddInModuleAddInBeginShutdown
+  OnAddInFinalize = adxCOMAddInModuleAddInFinalize
   TaskPanes = <>
   Height = 160
   Width = 272
@@ -301,6 +302,7 @@ object AddInModule: TAddInModule
     Ribbons2010 = [msrOutlookExplorer2010]
   end
   object adxOutlookAppEvents1: TadxOutlookAppEvents
+    OnItemSend = adxOutlookAppEvents1ItemSend
     OnNewMailEx = adxOutlookAppEvents1NewMailEx
     Left = 73
     Top = 71

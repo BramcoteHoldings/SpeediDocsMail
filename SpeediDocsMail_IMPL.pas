@@ -45,9 +45,13 @@ type
     procedure adxRibbonTab1Controls2Controls1Click(Sender: TObject;
       const RibbonControl: IRibbonControl);
     procedure adxCOMAddInModuleError(const E: Exception; var Handled: Boolean);
+    procedure adxCOMAddInModuleAddInFinalize(Sender: TObject);
+    procedure adxOutlookAppEvents1ItemSend(ASender: TObject;
+      const Item: IDispatch; var Cancel: WordBool);
   private
       FItems,
-      FItemsSent: TItems;
+      FItemsSent,
+      FDefItems: TItems;
       LRegAxiom: TRegistry;
       sRegistryRoot: string;
       LDocList: Array of MailItem;
@@ -65,6 +69,7 @@ var
    bSaveSentEmail: boolean;
    bSaveIncomingAlways: boolean;
    dmConnection: TdmSaveDoc;
+   bPromptToSaveIncoming: boolean;
 
 
 
@@ -73,7 +78,7 @@ implementation
 {$R *.dfm}
 
 uses
-   OutlookUnit, Word_TLB, SaveDocDetails, dxCore, LoginDetails, SaveDocFunc,
+   OutlookUnit, SaveDocDetails, dxCore, LoginDetails, SaveDocFunc,
    NewFee, vcl.controls, DocList;
 
 procedure TAddInModule.adxCOMAddInModuleAddInBeginShutdown(Sender: TObject);
@@ -89,9 +94,20 @@ begin
    end;
 end;
 
+procedure TAddInModule.adxCOMAddInModuleAddInFinalize(Sender: TObject);
+begin
+   if Assigned(FItems) then
+      FItems.Free;
+   if Assigned(FDefItems) then
+      FDefItems.Free;
+end;
+
 procedure TAddInModule.adxCOMAddInModuleAddInInitialize(Sender: TObject);
 begin
-    AddInModule := Self;
+   AddInModule := Self;
+   FDefItems := TItems.Create(nil);
+   FDefItems.ConnectTo(OutlookApp.GetNamespace('MAPI').GetDefaultFolder(olFolderSentMail).Items);
+   FDefItems.OnItemAdd := DoItemAdd;
 end;
 
 procedure TAddInModule.adxCOMAddInModuleAddInStartupComplete(Sender: TObject);
@@ -122,6 +138,16 @@ begin
          end
          else
              bSaveIncomingAlways := (sKeyValue = 'Y');
+
+         sKeyValue := LregAxiom.ReadString('PromptToSaveIncomingEmails');
+         if (sKeyValue = '') then
+         begin
+             LregAxiom.WriteString('PromptToSaveIncomingEmails','Y');
+             bPromptToSaveIncoming := true;
+         end
+         else
+             bPromptToSaveIncoming := (sKeyValue = 'Y');
+
          if (LregAxiom.ReadString('ShowMatterList') = 'Y') then
          begin
 //            adxOlFormsManager.Items[0].ExplorerLayout := elBottomNavigationPane;
@@ -132,18 +158,6 @@ begin
          LregAxiom.Free;
       end;
 
-      if Assigned(OutlookApp) then
-      begin
-         IFolderSent := OutlookApp.GetNamespace('MAPI').GetDefaultFolder(olFolderSentMail);
-         if Assigned(IFolderSent) then
-         try
-            FItemsSent := TItems.Create(nil);
-            FItemsSent.ConnectTo(IFolderSent.Items);
-            FItemsSent.OnItemAdd := DoItemAdd;
-         finally
-            IFolderSent := nil;
-         end;
-      end;
    end;
 end;
 
@@ -151,11 +165,50 @@ procedure TAddInModule.adxCOMAddInModuleError(const E: Exception;
   var Handled: Boolean);
 begin
    try
-      WriteLog('Addin Exception: '  + E.Message);
+ //     WriteLog('Addin Exception: '  + E.Message);
       Handled := True;
    except
       // Ignore
    end;
+end;
+
+procedure TAddInModule.adxOutlookAppEvents1ItemSend(ASender: TObject;
+  const Item: IDispatch; var Cancel: WordBool);
+var
+   ol2010: Outlook2010._Application;
+   i: integer;
+   IMail: _MailItem;
+   Mail: TMailItem;
+   Inspector : outlook2000._Inspector;
+   objFolder : Outlook2010.MAPIFolder;
+   objStore : Outlook2010._store;
+   StoreFolder : String;
+begin
+   if Assigned(FItems) then
+   begin
+      FItems.Free;
+      FItems := nil;
+   end;
+
+   Inspector := OutlookApp.ActiveInspector;
+   Inspector.CurrentItem.QueryInterface(IID__MailItem, IMail);
+   ol2010:= self.OutlookApp.Application as Outlook2010._Application;
+   for i := 1 to ol2010.Session.Accounts.Count do
+   begin
+      if (IMail.SendUsingAccount.DisplayName = ol2010.Session.Accounts.Item(I).DisplayName) then
+      begin
+         StoreFolder := ol2010.Session.Accounts.Item(I).DisplayName;
+         break;
+      end;
+   end;
+
+   objstore := ol2010.Session.Stores.Item(ol2010.Session.Accounts.Item(I).DisplayName);
+   objFolder := objstore.Session.GetDefaultFolder(olFolderSentMail);
+
+   FItems := TItems.Create(nil);
+   FItems.ConnectTo(objFolder.Items as outlook2000._Items);
+   FItems.OnItemAdd := nil;
+   FItems.OnItemAdd := DoItemAdd;
 end;
 
 procedure TAddInModule.adxOutlookAppEvents1NewMailEx(ASender: TObject;
@@ -225,7 +278,6 @@ procedure TAddInModule.adxRibbonContextMenu1Controls1Click(Sender: TObject;
   const RibbonControl: IRibbonControl);
 var
    Control: IRibbonControl;
-   Document: _Document;
    IWindow: IDispatch;
 begin
    try
@@ -375,7 +427,6 @@ procedure TAddInModule.adxRibbonTab1Controls1Controls0Click(Sender: TObject;
   const RibbonControl: IRibbonControl);
 var
    Control: IRibbonControl;
-   Document: _Document;
    IWindow: IDispatch;
 begin
    try
@@ -549,27 +600,25 @@ var
    IFolderSent: MAPIFolder;
 begin
    try
-      if HostType = ohaOutlook then
+      if Assigned(Item) then
       begin
-         if Assigned(Item) then
+         Item.QueryInterface(IID__MailItem, Mail);
+         if Assigned(Mail) then
          begin
-            Item.QueryInterface(IID__MailItem, Mail);
-            if Assigned(Mail) then
-            begin
-               try
-                  IFolderSent := Mail.Parent as MAPIFolder;
-                  if ((IFolderSent.Name = 'Sent Items') or
-                     (IFolderSent.Name = 'Sent Mail')) then
-                  begin
-                     try
-                        SentMessage(Mail, True);
-                     finally
-                        Mail := nil;
-                     end;
+            try
+               IFolderSent := Mail.Parent as MAPIFolder;
+               if ((IFolderSent.Name = 'Sent Items') or
+                  (IFolderSent.Name = 'Sent Mail')or
+                  (IFolderSent.Name = 'Sent')) then
+               begin
+                  try
+                     SentMessage(Mail, True);
+                  finally
+                     Mail := nil;
                   end;
-               finally
-                  IFolderSent := nil;
                end;
+            finally
+               IFolderSent := nil;
             end;
          end;
       end;
