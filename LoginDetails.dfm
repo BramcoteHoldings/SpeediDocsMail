@@ -3,7 +3,7 @@ object frmLoginSetup: TfrmLoginSetup
   Top = 340
   BorderStyle = bsDialog
   Caption = 'Configuration'
-  ClientHeight = 480
+  ClientHeight = 504
   ClientWidth = 254
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,7 +17,7 @@ object frmLoginSetup: TfrmLoginSetup
   OnShow = FormShow
   DesignSize = (
     254
-    480)
+    504)
   PixelsPerInch = 96
   TextHeight = 13
   object GroupBox1: TGroupBox
@@ -125,7 +125,7 @@ object frmLoginSetup: TfrmLoginSetup
   end
   object Button1: TButton
     Left = 91
-    Top = 433
+    Top = 457
     Width = 75
     Height = 26
     Anchors = [akRight, akBottom]
@@ -133,12 +133,13 @@ object frmLoginSetup: TfrmLoginSetup
     ModalResult = 1
     TabOrder = 1
     OnClick = Button1Click
+    ExplicitTop = 433
   end
   object GroupBox2: TGroupBox
     Left = 7
-    Top = 218
+    Top = 216
     Width = 239
-    Height = 208
+    Height = 241
     Caption = 'Outlook Options'
     TabOrder = 2
     object chkShowMatterList: TCheckBox
@@ -151,7 +152,7 @@ object frmLoginSetup: TfrmLoginSetup
       TabOrder = 0
       OnClick = chkShowMatterListClick
     end
-    object chkSaveIncoming: TCheckBox
+    object chkSaveIncomingInSeparateFolder: TCheckBox
       Left = 7
       Top = 38
       Width = 226
@@ -159,10 +160,10 @@ object frmLoginSetup: TfrmLoginSetup
       Caption = 'Save Incoming Emails in separate folder'
       Enabled = False
       TabOrder = 1
-      OnClick = chkSaveIncomingClick
+      OnClick = chkSaveIncomingInSeparateFolderClick
     end
     object chkSaveOutgoing: TCheckBox
-      Left = 7
+      Left = 6
       Top = 78
       Width = 207
       Height = 17
@@ -172,8 +173,8 @@ object frmLoginSetup: TfrmLoginSetup
       OnClick = chkSaveOutgoingClick
     end
     object chkSaveSentEmail: TCheckBox
-      Left = 7
-      Top = 98
+      Left = 6
+      Top = 118
       Width = 190
       Height = 17
       Hint = 
@@ -193,35 +194,46 @@ object frmLoginSetup: TfrmLoginSetup
       TabOrder = 4
       OnClick = chkRemoveEmailClick
     end
-    object chkSaveIncomingAlways: TCheckBox
-      Left = 7
-      Top = 117
+    object chkPromptToSave: TCheckBox
+      Left = 6
+      Top = 137
       Width = 178
       Height = 17
       Caption = 'Prompt to save Incoming Email'
       TabOrder = 5
+      OnClick = chkPromptToSaveClick
+    end
+    object chkSaveIncomingAlways: TCheckBox
+      Left = 6
+      Top = 98
+      Width = 190
+      Height = 17
+      Hint = 'Select this option if you want all emails processed.'
+      Caption = 'Automatically process Emails'
+      TabOrder = 6
       OnClick = chkSaveIncomingAlwaysClick
     end
   end
   object btnCancel: TButton
     Left = 171
-    Top = 433
+    Top = 457
     Width = 75
     Height = 26
     Anchors = [akRight, akBottom]
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 3
+    ExplicitTop = 433
   end
   object GroupBox3: TGroupBox
     Left = 8
-    Top = 355
+    Top = 387
     Width = 234
     Height = 67
     TabOrder = 4
     object chkLogEvents: TCheckBox
       Left = 3
-      Top = 4
+      Top = 5
       Width = 226
       Height = 30
       Hint = 
@@ -295,7 +307,7 @@ object frmLoginSetup: TfrmLoginSetup
   end
   object StatusBar: TStatusBar
     Left = 0
-    Top = 461
+    Top = 485
     Width = 254
     Height = 19
     Panels = <
@@ -304,16 +316,19 @@ object frmLoginSetup: TfrmLoginSetup
       end>
     ParentFont = True
     UseSystemFont = False
+    ExplicitTop = 461
   end
   object BitBtn1: TBitBtn
     Left = 8
-    Top = 433
+    Top = 457
     Width = 79
     Height = 26
+    Anchors = [akLeft, akBottom]
     Caption = 'Additional'
     TabOrder = 6
     Visible = False
     OnClick = BitBtn1Click
+    ExplicitTop = 433
   end
   object OpenDialog: TOpenDialog
     Left = 202
