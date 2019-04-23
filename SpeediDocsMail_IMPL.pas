@@ -3,7 +3,7 @@ unit SpeediDocsMail_IMPL;
 interface
 
 uses
-  SysUtils, ComObj, ComServ, ActiveX, Variants, Outlook2000, Office2000,
+  SysUtils, ComObj, ComServ, ActiveX, Variants, Outlook_TLB, Outlook2000,
   adxAddIn, SpeediDocsMail_TLB,  Outlook2010,
   System.Classes, StdVcl, Registry, Windows, SaveDoc,
   adxHostAppEvents;
@@ -105,15 +105,15 @@ end;
 procedure TAddInModule.adxCOMAddInModuleAddInInitialize(Sender: TObject);
 begin
    AddInModule := Self;
-   FDefItems := TItems.Create(nil);
-   FDefItems.ConnectTo(OutlookApp.GetNamespace('MAPI').GetDefaultFolder(olFolderSentMail).Items);
-   FDefItems.OnItemAdd := DoItemAdd;
+//   FDefItems := TItems.Create(nil);
+//   FDefItems.ConnectTo(OutlookApp.GetNamespace('MAPI').GetDefaultFolder(olFolderSentMail).Items);
+//   FDefItems.OnItemAdd := DoItemAdd;
 end;
 
 procedure TAddInModule.adxCOMAddInModuleAddInStartupComplete(Sender: TObject);
 var
-   IFolderInbox: Outlook2000.MAPIFolder;
-   IFolderSent: Outlook2000.MAPIFolder;
+   IFolderInbox: Outlook2010.MAPIFolder;
+   IFolderSent: Outlook2010.MAPIFolder;
    sKeyValue: string;
 begin
    FItems := nil;
@@ -175,13 +175,13 @@ end;
 procedure TAddInModule.adxOutlookAppEvents1ItemSend(ASender: TObject;
   const Item: IDispatch; var Cancel: WordBool);
 var
-   ol2010: Outlook2010._Application;
+   ol2010: Outlook_Tlb._Application;
    i: integer;
    IMail: _MailItem;
    Mail: TMailItem;
    Inspector : outlook2000._Inspector;
-   objFolder : Outlook2010.MAPIFolder;
-   objStore : Outlook2010._store;
+   objFolder : Outlook_TLB.MAPIFolder;
+   objStore : Outlook_TLB._store;
    StoreFolder : String;
 begin
    if Assigned(FItems) then
@@ -192,7 +192,7 @@ begin
 
    Inspector := OutlookApp.ActiveInspector;
    Inspector.CurrentItem.QueryInterface(IID__MailItem, IMail);
-   ol2010:= self.OutlookApp.Application as Outlook2010._Application;
+   ol2010:= self.OutlookApp.Application as Outlook_Tlb._Application;
    for i := 1 to ol2010.Session.Accounts.Count do
    begin
       if (IMail.SendUsingAccount.DisplayName = ol2010.Session.Accounts.Item(I).DisplayName) then
@@ -206,7 +206,7 @@ begin
    objFolder := objstore.Session.GetDefaultFolder(olFolderSentMail);
 
    FItems := TItems.Create(nil);
-   FItems.ConnectTo(objFolder.Items as outlook2000._Items);
+   FItems.ConnectTo(outlook2000._Items(objFolder.Items));
    FItems.OnItemAdd := nil;
    FItems.OnItemAdd := DoItemAdd;
 end;
@@ -633,8 +633,6 @@ var
    LAppType,
    liTotalSelected,
    lArrayCount: Integer;
-   IProps: DocumentProperties;
-   IProp: DocumentProperty;
    PropValue: OleVariant;
    PropName: widestring;
    item: IDispatch;

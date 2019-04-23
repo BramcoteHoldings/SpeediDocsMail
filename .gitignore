@@ -24,3 +24,5 @@ $RECYCLE.BIN/
 *.dcu
 *.dcu
 *.dcu
+Win32/Output
+_Setup/
