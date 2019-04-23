@@ -6,7 +6,7 @@
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <DCC_DependencyCheckOutputName>SpeediDocsMail.dll</DCC_DependencyCheckOutputName>
         <ProjectVersion>18.4</ProjectVersion>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
@@ -93,11 +93,11 @@
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <Debugger_HostApplication>C:\Program Files (x86)\Microsoft Office\Office15\outlook.EXE</Debugger_HostApplication>
+        <Debugger_HostApplication>C:\Program Files (x86)\Microsoft Office\root\Office16\OUTLOOK.EXE</Debugger_HostApplication>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Build>13</VerInfo_Build>
+        <VerInfo_Build>14</VerInfo_Build>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
-        <VerInfo_Keys>CompanyName=Bramcote Holdings Pty Ltd;FileVersion=4.0.0.13;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=SpeediDocsMail;ProductVersion=4.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Bramcote Holdings Pty Ltd;FileVersion=4.0.0.14;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=SpeediDocsMail;ProductVersion=4.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_DebugInformation>true</DCC_DebugInformation>
         <DCC_MapFile>3</DCC_MapFile>
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
@@ -114,12 +114,12 @@
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <VerInfo_Build>13</VerInfo_Build>
+        <VerInfo_Build>15</VerInfo_Build>
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
         <DCC_MapFile>3</DCC_MapFile>
-        <VerInfo_Keys>CompanyName=Bramcote Holdings Pty Ltd;FileVersion=1.1.0.13;InternalName=Insight_Addin_for_Outlook;LegalCopyright=;LegalTrademarks=;OriginalFilename=SpeediDocsMail;ProductVersion=1.0.0.0;Comments=Insight Addin for Outlook;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Bramcote Holdings Pty Ltd;FileVersion=1.1.0.15;InternalName=Insight_Addin_for_Outlook;LegalCopyright=;LegalTrademarks=;OriginalFilename=SpeediDocsMail;ProductVersion=1.0.0.0;Comments=Insight Addin for Outlook;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <Debugger_HostApplication>C:\Program Files (x86)\Microsoft Office\Office15\outlook.EXE</Debugger_HostApplication>
+        <Debugger_HostApplication>C:\Program Files (x86)\Microsoft Office\root\Office16\OUTLOOK.EXE</Debugger_HostApplication>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_DcuOutput>.\Win32\Dcu\</DCC_DcuOutput>
