@@ -260,8 +260,8 @@ object dmSaveDoc: TdmSaveDoc
         ':MI:SS'#39') between To_date(TO_CHAR(d_create - (2 / (24*60*60)), '#39'D' +
         'D/MM/YYYY HH:MI:SS'#39'),'#39'DD/MM/YYYY HH:MI:SS'#39') '
       
-        '  and To_date(TO_CHAR(d_create + (2 / (24*60*60)), '#39'DD/MM/YYYY H' +
-        'H:MI:SS'#39'),'#39'DD/MM/YYYY HH:MI:SS'#39')'
+        '  and To_date(TO_CHAR(d_create + (10 / (24*60*60)), '#39'DD/MM/YYYY ' +
+        'HH:MI:SS'#39'),'#39'DD/MM/YYYY HH:MI:SS'#39')'
       'and '
       'fileid = :fileid')
     Left = 106
@@ -644,8 +644,8 @@ object dmSaveDoc: TdmSaveDoc
   end
   object dsPrecClassification: TOraDataSource
     DataSet = qryPrecClassification
-    Left = 118
-    Top = 385
+    Left = 174
+    Top = 393
   end
   object qryPrecCategory: TOraQuery
     Session = orsInsight

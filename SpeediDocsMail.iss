@@ -1,11 +1,11 @@
 #define AppName "{543CFF7F-8DE9-4797-AEDF-83DCD6C3E8D7}"
-#define AppVersion "4.0.0.13"
+#define AppVersion "4.0.0.14"
 
 
 
 [Setup]
 AppName                = SpeediDocsMail
-AppVerName             = SpeediDocsMail 4.0.0.13
+AppVerName             = SpeediDocsMail 4.0.0.14
 OutputBaseFilename     = SpeediDocsMail
 DefaultDirName         = {pf32}\SpeediDocs
 OutputDir              = _Setup
