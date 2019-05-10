@@ -310,7 +310,6 @@ begin
             Value := False;
       end;
    end;
-
 end;
 
 procedure TAddInModule.adxRibbonContextMenu1Controls2Click(Sender: TObject;
