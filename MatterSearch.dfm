@@ -1,6 +1,7 @@
 object frmMtrSearch: TfrmMtrSearch
   Left = 359
   Top = 246
+  ActiveControl = grdMatters
   BorderIcons = [biSystemMenu]
   Caption = 'Matter Search'
   ClientHeight = 554
@@ -149,6 +150,7 @@ object frmMtrSearch: TfrmMtrSearch
       Width = 73
       Height = 25
       Caption = 'OK'
+      Default = True
       ModalResult = 1
       OptionsImage.Glyph.SourceDPI = 96
       OptionsImage.Glyph.Data = {

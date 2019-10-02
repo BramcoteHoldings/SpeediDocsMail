@@ -80,6 +80,7 @@ type
    function CopyFileIFileOperationForceDirectories(const srcFile, destFile : string; DeleteOrigDoc: boolean = False) : boolean;
    function MsgAsk(sMsg: string): integer;
    function WriteFileToDisk(var ANewDocName: string; AOldDocName: string; ADeleteFile: boolean = False): boolean;
+   function StripNonAscii(s: string): string;
 
 implementation
 
@@ -1213,6 +1214,29 @@ begin
       end;
    end;
    Result := ADocumentSaved;
+end;
+
+function StripNonAscii(s: string): string;
+var
+   Count, i:Integer;
+begin
+   Count := 0;
+   for i:=1 to Length(s) do
+      if ((s[i] >= #32) and (s[i] <= #127)) or (s[i] in [#10, #13]) then
+         Inc(Count);
+   if Count = Length(s) then
+      Result := s // No characters need to be removed, return the original string (no mem allocation!)
+   else
+   begin
+      SetLength(Result, Count);
+      Count := 1;
+      for i:=1 to Length(s) do
+         if ((s[i] >= #32) and (s[i] <= #127)) or (s[i] in [#10, #13]) then
+         begin
+            Result[Count] := s[i];
+            Inc(Count);
+         end;
+   end;
 end;
 
 end.

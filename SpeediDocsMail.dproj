@@ -94,10 +94,9 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <Debugger_HostApplication>C:\Program Files (x86)\Microsoft Office\root\Office16\OUTLOOK.EXE</Debugger_HostApplication>
-        <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Build>17</VerInfo_Build>
+        <VerInfo_Build>19</VerInfo_Build>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
-        <VerInfo_Keys>CompanyName=Bramcote Holdings Pty Ltd;FileVersion=4.0.0.17;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=SpeediDocsMail;ProductVersion=4.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Bramcote Holdings Pty Ltd;FileVersion=4.0.0.19;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=SpeediDocsMail;ProductVersion=4.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_DebugInformation>true</DCC_DebugInformation>
         <DCC_MapFile>3</DCC_MapFile>
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
@@ -119,7 +118,7 @@
         <DCC_MapFile>3</DCC_MapFile>
         <VerInfo_Keys>CompanyName=Bramcote Holdings Pty Ltd;FileVersion=1.1.0.16;InternalName=Insight_Addin_for_Outlook;LegalCopyright=;LegalTrademarks=;OriginalFilename=SpeediDocsMail;ProductVersion=1.0.0.0;Comments=Insight Addin for Outlook;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <Debugger_HostApplication>C:\Program Files (x86)\Microsoft Office\Office15\outlook.EXE</Debugger_HostApplication>
+        <Debugger_HostApplication>C:\Program Files (x86)\Microsoft Office\root\Office16\OUTLOOK.EXE</Debugger_HostApplication>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_DcuOutput>.\Win32\Dcu\</DCC_DcuOutput>
@@ -146,6 +145,10 @@
             <Form>dmSaveDoc</Form>
             <FormType>dfm</FormType>
             <DesignClass>TDataModule</DesignClass>
+        </DCCReference>
+        <DCCReference Include="SavedocDetails.pas">
+            <Form>frmSaveDocDetails</Form>
+            <FormType>dfm</FormType>
         </DCCReference>
         <RidlCompile Include="SpeediDocsMail.ridl"/>
         <BuildConfiguration Include="Debug">
@@ -217,6 +220,12 @@
             </Platforms>
             <Deployment Version="3">
                 <DeployFile LocalName="..\Win32\Output\SpeediDocsMail.dll" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>SpeediDocsMail.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win32\Output\SpeediDocsMail.dll" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>SpeediDocsMail.dll</RemoteName>
                         <Overwrite>true</Overwrite>
