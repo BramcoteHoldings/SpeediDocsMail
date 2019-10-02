@@ -243,7 +243,7 @@ object frmSaveDocDetails: TfrmSaveDocDetails
       TabOrder = 9
     end
     object cbNewCopy: TCheckBox
-      Left = 237
+      Left = 255
       Top = 16
       Width = 113
       Height = 16
@@ -379,7 +379,7 @@ object frmSaveDocDetails: TfrmSaveDocDetails
       TabOrder = 0
       OnExit = btnEditMatterExit
       OnKeyPress = btnEditMatterKeyPress
-      Width = 118
+      Width = 136
     end
     object btnTxtDocPath: TcxButtonEdit
       Left = 112
@@ -517,7 +517,7 @@ object frmSaveDocDetails: TfrmSaveDocDetails
       ControlOptions.MinHeight = 19
       ControlOptions.MinWidth = 19
       ControlOptions.OriginalHeight = 24
-      ControlOptions.OriginalWidth = 118
+      ControlOptions.OriginalWidth = 136
       ControlOptions.ShowBorder = False
       Index = 0
     end

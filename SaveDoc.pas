@@ -377,7 +377,7 @@ begin
    with qryNew do
    begin
       Close;
-      SQL.Text := 'SELECT matter.fileid , phonebook.search as title, matter.longdescr, '+
+      SQL.Text := 'SELECT matter.fileid, phonebook.search as title, matter.longdescr, '+
                   'matter.partner, matter.author, matter.type, phonebook.clientid, matter.archived, matter.status, nmatter '+
                   'FROM phonebook, matter WHERE matter.nclient = phonebook.nclient and closed = 0';
 {      if dmAxiom.Security.Employee.ChangeEntity = False then
@@ -417,7 +417,7 @@ begin
       else
       if (qryNew.RecordCount = 1) then
       begin
-         LFileID := qryNew.FieldByName('code').AsString;
+         LFileID := qryNew.FieldByName('fileid').AsString;
          ANMatter := qryNew.FieldByName('nmatter').AsInteger;
       end
       else

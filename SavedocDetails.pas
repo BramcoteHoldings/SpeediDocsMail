@@ -11,14 +11,13 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   {Dialogs,} ComObj, StdCtrls, Menus, DB, ActnList,
-  ActnMan, Vcl.ExtCtrls, Vcl.ImgList, Vcl.Buttons, Vcl.ComCtrls, Vcl.DBCtrls,
-  SaveDoc, cxGraphics, cxControls, cxLookAndFeels, cxLookAndFeelPainters,
-  cxContainer, cxEdit, cxTextEdit, cxMaskEdit, cxDropDownEdit, cxLookupEdit,
-  cxDBLookupEdit, cxDBLookupComboBox, Outlook2000, cxImageComboBox, cxSpinEdit,
-  DBAccess, Ora, MemDS, cxMemo, cxButtonEdit, JvBaseDlg, JvBrowseFolder,
-  dxLayoutcxEditAdapters, dxLayoutControlAdapters, dxLayoutContainer, cxClasses,
-  dxLayoutControl, cxLabel, Vcl.Dialogs, cxCheckBox, System.ImageList, Outlook2010,
-  dxSkinsCore, dxSkinOffice2013DarkGray;
+  ActnMan, Outlook2010, cxGraphics, cxControls, cxLookAndFeels,
+  cxLookAndFeelPainters, cxContainer, cxEdit, dxLayoutcxEditAdapters,
+  dxLayoutControlAdapters, dxLayoutContainer, Vcl.Dialogs, JvBaseDlg,
+  JvBrowseFolder, System.ImageList, Vcl.ImgList, cxClasses, cxLabel, cxCheckBox,
+  cxButtonEdit, cxTextEdit, Vcl.Buttons, cxDropDownEdit, cxLookupEdit,
+  cxDBLookupEdit, cxDBLookupComboBox, cxMemo, cxMaskEdit, cxSpinEdit,
+  dxLayoutControl, Vcl.ComCtrls;
 
 const
      CUSTOMPROPS: array[0..10] of string = ('MatterNo','DocID','Prec_Category','Prec_Classification','Doc_Keywords','Doc_Precedent','Doc_FileName','Doc_Author','Saved_in_DB', 'Doc_Title','Portal_Access');
@@ -166,7 +165,7 @@ implementation
 
 uses
     MatterSearch, SaveDocFunc, ActiveX, OutlookUnit,
-    SpeediDocsMail_IMPL, Office2010;
+    SpeediDocsMail_IMPL, Office2010, SaveDoc;
 
 {$R *.dfm}
 
@@ -593,18 +592,30 @@ begin
 end;
 
 procedure TfrmSaveDocDetails.btnEditMatterExit(Sender: TObject);
+var
+   lFileID,
+   lFoundFileID: string;
+   nmatter: integer;
 begin
    if string(btnEditMatter.Text) <> '' then
    begin
-      dmConnection.qryGetMatter.Close;
+      lFileID := PadFileID(btnEditMatter.Text);
+      dmConnection.FindMatter(lFoundFileID, nmatter, lFileID);
+      btnEditMatter.Text := lFoundFileID;
+      dmConnection.qryMatterFolderList.Close;
+      dmConnection.qryMatterFolderList.ParamByName('nMatter').AsInteger := nmatter;
+      dmConnection.qryMatterFolderList.Open;
+
+
+{      dmConnection.qryGetMatter.Close;
       dmConnection.qryGetMatter.ParamByName('FILEID').AsString := string(btnEditMatter.Text);
       dmConnection.qryGetMatter.Open;
       if dmConnection.qryGetMatter.Eof then
          MsgErr('Invalid Matter Number')
-      else
+      else     }
       begin
-         nMatter := dmConnection.qryGetMatter.FieldByName('NMATTER').AsInteger;
-         FFileID := string(btnEditMatter.Text);
+//         nMatter := dmConnection.qryGetMatter.FieldByName('NMATTER').AsInteger;
+         FFileID := lFileID;  //string(btnEditMatter.Text);
          Label7.Caption := TableString('MATTER','NMATTER',nMatter,'SHORTDESCR');
 //         cmbAuthor.EditValue := TableString('MATTER','NMATTER',nMatter,'AUTHOR');
          cbOverwriteDoc.Enabled := (FOldFileID = FFileID);

@@ -561,7 +561,8 @@ begin
             begin
                for x := i + 1 to length(sSubject) do
                begin
-                  if ((sSubject[x] <> ' ') and (sSubject[x] <> ']')) then
+                  if ((sSubject[x] <> ' ') and (sSubject[x] <> '[')
+                     and  (sSubject[x] <> ']')) then
                      FileID := FileID + sSubject[x]
                   else
                      break;
