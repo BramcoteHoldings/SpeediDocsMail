@@ -3,10 +3,9 @@ unit SpeediDocsMail_IMPL;
 interface
 
 uses
-  SysUtils, ComObj, ComServ, ActiveX, Variants, Outlook_TLB, Outlook2000,
-  adxAddIn, SpeediDocsMail_TLB,  Outlook2010,
-  System.Classes, StdVcl, Registry, Windows, SaveDoc,
-  adxHostAppEvents;
+  SysUtils, ComObj, adxAddIn, SpeediDocsMail_TLB, ComServ, ActiveX,
+  Variants, Outlook2000, Outlook2010, System.Classes, StdVcl,
+  Registry, Windows, SaveDoc, adxHostAppEvents, Outlook_Tlb;
 
   const
    csRegistryRoot = 'Software\Colateral\Axiom\SpeediDocs';
@@ -50,8 +49,7 @@ type
       const Item: IDispatch; var Cancel: WordBool);
   private
       FItems,
-      FItemsSent,
-      FDefItems: TItems;
+      FItemsSent: TItems;
       LRegAxiom: TRegistry;
       sRegistryRoot: string;
       LDocList: Array of MailItem;
@@ -98,8 +96,6 @@ procedure TAddInModule.adxCOMAddInModuleAddInFinalize(Sender: TObject);
 begin
    if Assigned(FItems) then
       FItems.Free;
-   if Assigned(FDefItems) then
-      FDefItems.Free;
 end;
 
 procedure TAddInModule.adxCOMAddInModuleAddInInitialize(Sender: TObject);
@@ -178,7 +174,6 @@ var
    ol2010: Outlook_Tlb._Application;
    i: integer;
    IMail: _MailItem;
-   Mail: TMailItem;
    Inspector : outlook2000._Inspector;
    objFolder : Outlook_TLB.MAPIFolder;
    objStore : Outlook_TLB._store;
@@ -195,10 +190,13 @@ begin
    ol2010:= self.OutlookApp.Application as Outlook_Tlb._Application;
    for i := 1 to ol2010.Session.Accounts.Count do
    begin
-      if (IMail.SendUsingAccount.DisplayName = ol2010.Session.Accounts.Item(I).DisplayName) then
+      if (IMail.SendUsingAccount <> nil) then
       begin
-         StoreFolder := ol2010.Session.Accounts.Item(I).DisplayName;
-         break;
+         if (IMail.SendUsingAccount.DisplayName = ol2010.Session.Accounts.Item(I).DisplayName) then
+         begin
+            StoreFolder := ol2010.Session.Accounts.Item(I).DisplayName;
+            break;
+         end;
       end;
    end;
 
@@ -207,7 +205,7 @@ begin
 
    FItems := TItems.Create(nil);
    FItems.ConnectTo(outlook2000._Items(objFolder.Items));
-   FItems.OnItemAdd := nil;
+//   FItems.OnItemAdd := nil;
    FItems.OnItemAdd := DoItemAdd;
 end;
 
@@ -310,7 +308,6 @@ begin
             Value := False;
       end;
    end;
-
 end;
 
 procedure TAddInModule.adxRibbonContextMenu1Controls2Click(Sender: TObject;
@@ -362,7 +359,7 @@ begin
          begin
             i := 1;
             sel := OutlookApp.ActiveExplorer.Selection;
-            Appointment := AppointmentItem(sel.Item(1));
+            Appointment := Outlook2010.AppointmentItem(sel.Item(1));
             s := Appointment.Subject;
 
             if AnsiPos('Converted to Fee', Appointment.Subject) = 0 then

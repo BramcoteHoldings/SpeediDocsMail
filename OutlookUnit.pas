@@ -145,6 +145,11 @@ begin
          end;
 
          lSubject := FMail.Subject;
+
+         // strip all UTF8 and unicode characters from subject
+         lSubject := StripNonAscii(lSubject);
+
+         // now strip invalid ASCII characters
          for x := 1 to length(lSubject) do
          begin
             if (lSubject[x] in ['/', '\', '?','"','<','>','|','*',':', '.']) then
@@ -217,7 +222,7 @@ begin
          OldDocName := tmpdir + ExtractFileName(AParsedDocName);
          FMail.SaveAs(OldDocName ,olMSG);
 
-         if (TOSVersion.Name = 'Windows 8') or (TOSVersion.Name = 'Windows Server 2012') or (TOSVersion.Major = 10) then
+         if (TOSVersion.Name = 'Windows 8') or (TOSVersion.Name = 'Windows Server 2012') or (TOSVersion.Major = 10) or (TOSVersion.Name = 'Windows 10') then
             ADocumentSaved := CopyFileIFileOperationForceDirectories(OldDocName, AParsedDocName)
          else
             ADocumentSaved := WriteFileToDisk(AParsedDocName, OldDocName);
@@ -556,7 +561,8 @@ begin
             begin
                for x := i + 1 to length(sSubject) do
                begin
-                  if ((sSubject[x] <> ' ') and (sSubject[x] <> ']')) then
+                  if ((sSubject[x] <> ' ') and (sSubject[x] <> '[')
+                     and  (sSubject[x] <> ']')) then
                      FileID := FileID + sSubject[x]
                   else
                      break;

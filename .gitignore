@@ -26,3 +26,6 @@ $RECYCLE.BIN/
 *.dcu
 Win32/Output
 _Setup/
+Win32/Output/SpeediDocsMail.dll
+*.dll
+Win32/Output/SpeediDocsMail.map
