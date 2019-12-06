@@ -1101,7 +1101,7 @@ begin
          if Succeeded(r) then
          begin
             //set operations flags
-            r := fileOp.SetOperationFlags(FOF_NOCONFIRMATION OR FOFX_NOMINIMIZEBOX);
+            r := fileOp.SetOperationFlags(FOF_NOCONFIRMATION OR FOFX_NOMINIMIZEBOX OR FOF_NOCONFIRMMKDIR);
             if Succeeded(r) then
             begin
                //get source shell item
