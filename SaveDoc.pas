@@ -388,7 +388,7 @@ begin
          ParamByName('ENTITY').AsString := Entity;
       end
       else}
-         SQL.Text := SQL.Text + 'and matter.entity = '+ QuotedStr(Entity) ;
+ //        SQL.Text := SQL.Text + 'and matter.entity = '+ QuotedStr(Entity) ;
 
       if (Trim(LFileID) <> '') then
          SQL.Text := SQL.Text + ' and contains(matter.dummy,'+ QuotedStr(LFileID) +') > 0';
