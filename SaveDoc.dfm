@@ -142,7 +142,6 @@ object dmSaveDoc: TdmSaveDoc
     Options.LocalFailover = True
     Username = 'abc'
     Server = '192.168.0.22:1521:marketing'
-    Connected = True
     LoginPrompt = False
     OnError = orsInsightError
     OnConnectionLost = orsInsightConnectionLost

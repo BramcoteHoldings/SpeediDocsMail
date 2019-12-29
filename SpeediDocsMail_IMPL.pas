@@ -57,6 +57,7 @@ type
       procedure DoItemAdd(ASender: TObject; const Item: IDispatch);
       procedure DoSave;
       procedure ConvertApptToFee;
+
   protected
   public
    ol2010: Outlook2010._Application;
@@ -172,12 +173,12 @@ procedure TAddInModule.adxOutlookAppEvents1ItemSend(ASender: TObject;
   const Item: IDispatch; var Cancel: WordBool);
 var
    ol2010: Outlook_Tlb._Application;
-   i: integer;
    IMail: _MailItem;
    Inspector : outlook2000._Inspector;
-   objFolder : Outlook_TLB.MAPIFolder;
-   objStore : Outlook_TLB._store;
-   StoreFolder : String;
+   objFolder : Outlook_Tlb.MAPIFolder;
+   objStore : Outlook_Tlb._store;
+   objAccount : Outlook_Tlb._Account;
+   strStoreName : String;
 begin
    if Assigned(FItems) then
    begin
@@ -185,28 +186,29 @@ begin
       FItems := nil;
    end;
 
+   IMail := (Item as MailItem);
    Inspector := OutlookApp.ActiveInspector;
    Inspector.CurrentItem.QueryInterface(IID__MailItem, IMail);
    ol2010:= self.OutlookApp.Application as Outlook_Tlb._Application;
-   for i := 1 to ol2010.Session.Accounts.Count do
+
+//   strStoreName := IMail.SendUsingAccount.DisplayName;
+
+   if (IMail.SendUsingAccount = nil) then
    begin
-      if (IMail.SendUsingAccount <> nil) then
-      begin
-         if (IMail.SendUsingAccount.DisplayName = ol2010.Session.Accounts.Item(I).DisplayName) then
-         begin
-            StoreFolder := ol2010.Session.Accounts.Item(I).DisplayName;
-            break;
-         end;
-      end;
+      SentMessage(Outlook2010.MailItem(IMail), True);
+   end
+   else
+   if (IMail.SendUsingAccount <> nil) then
+   begin
+      objStore := IMail.SendUsingAccount.DeliveryStore;
+//      objstore := ol2010.Session.Stores.Item(ol2010.Session.Accounts.Item(I).DisplayName);
+//      objFolder := objstore.Session.GetDefaultFolder(olFolderSentMail);
+      objFolder := objStore.GetDefaultFolder(olFolderSentMail); //Version Added: Outlook 2010
+
+      FItems := TItems.Create(nil);
+      FItems.ConnectTo(outlook2000._Items(objFolder.Items));
+      FItems.OnItemAdd := DoItemAdd;
    end;
-
-   objstore := ol2010.Session.Stores.Item(ol2010.Session.Accounts.Item(I).DisplayName);
-   objFolder := objstore.Session.GetDefaultFolder(olFolderSentMail);
-
-   FItems := TItems.Create(nil);
-   FItems.ConnectTo(outlook2000._Items(objFolder.Items));
-//   FItems.OnItemAdd := nil;
-   FItems.OnItemAdd := DoItemAdd;
 end;
 
 procedure TAddInModule.adxOutlookAppEvents1NewMailEx(ASender: TObject;
