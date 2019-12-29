@@ -2,11 +2,11 @@ unit OutlookUnit;
 
 interface
 
-uses SpeediDocsMail_IMPL, ActiveX, ComObj, Variants, System.SysUtils,
+uses SpeediDocsMail_IMPL, ActiveX, ComObj, Variants,
      System.Classes, Windows, DB, Outlook2000, Office2000,
      Messages, ShellAPI, System.StrUtils, Registry,
      System.Math, Outlook2010, SaveDocFunc, SaveDoc,
-     SaveDocDetails;
+     SaveDocDetails, System.SysUtils, Outlook_Tlb;
 
 const
    WM_NEWMESSAGE = WM_USER + 1;
@@ -32,6 +32,7 @@ const
    function WriteFileDetailsToDB(AParentDocID: integer; ANewDocName, AFileID, ADocDescr: string; ADocID: integer = -1; ADocFolder: integer = -1): boolean;
 //   function UpdateAmount(AUnits: integer): currency;
 //   function CalcRate(ATemplate: string): currency;
+
 
 implementation
 
@@ -89,7 +90,8 @@ var
    ,lTimeUnits
    ,iCount
    ,AParentDocID,
-   lnRecipCount : integer;
+   lnRecipCount,
+   iAttacmnetSize : integer;
    lRate
    ,lAmount: double;
    bUseSubject: boolean;
@@ -109,6 +111,7 @@ var
    bCategoriseEmails,
    ADocumentSaved,
    bContinueAttach: boolean;
+   f: File of byte;
 begin
    x := 0;
    if AFromExplorer then
@@ -299,7 +302,10 @@ begin
             end
             else
             begin
-               dmConnection.qryMatterAttachments.FieldByName('PATH').AsString := IndexPath(AParsedDocName, 'DOC_SHARE_PATH');
+               if (ExtractFileDrive(AParsedDocName) = '') then
+                  dmConnection.qryMatterAttachments.FieldByName('PATH').AsString := AParsedDocName
+               else
+                  dmConnection.qryMatterAttachments.FieldByName('PATH').AsString := IndexPath(AParsedDocName, 'DOC_SHARE_PATH');
                dmConnection.qryMatterAttachments.FieldByName('display_PATH').AsString := AParsedDocName;
             end;
 
@@ -378,6 +384,7 @@ begin
                   begin
                      AType := Attachment.Type;  //lAttachments.Item(iCount).Type;
                      DispName := Attachment.DisplayName;
+                     iAttacmnetSize := Attachment.Size;
 
                      if DispName = '' then
                         DispName := Attachment.FileName;
@@ -426,14 +433,19 @@ begin
                      ParsedVarDocName := ParseMacros(VarDocName, TableInteger('MATTER','FILEID',AFileID,'NMATTER'), lDocID, DispName);
                      if (FileExists(ParsedVarDocName)) then
                      begin
-                           AExt := ExtractFileExt(ParsedVarDocName);
-                           ADispName := Copy (ParsedVarDocName,1, Length(ParsedVarDocName)- Length(AExt));
-                           ParsedVarDocName := ADispName + '_' + dmConnection.AttDocID + AExt;
+                        AExt := ExtractFileExt(ParsedVarDocName);
+                        ADispName := Copy (ParsedVarDocName,1, Length(ParsedVarDocName)- Length(AExt));
+                        ParsedVarDocName := ADispName + '_' + dmConnection.AttDocID + AExt;
                      end;
 
-                     Attachment.SaveAsFile(ParsedVarDocName);
-
-                     WriteFileDetailsToDB(AParentDocID, ParsedVarDocName, AFileID, ADocDescr, ADocFolder);
+                     //last check to make sure it's not an attachment
+                     if (iAttacmnetSize > 9000) or
+                        ((uppercase(extractFileExt(ParsedVarDocName)) <> '.PNG') and
+                        (pos('IMAGE', uppercase(ParsedVarDocName)) = 0)) then
+                     begin
+                        Attachment.SaveAsFile(ParsedVarDocName);
+                        WriteFileDetailsToDB(AParentDocID, ParsedVarDocName, AFileID, ADocDescr, ADocFolder);
+                     end;
                   end;
                end;
             end;
@@ -531,7 +543,7 @@ var
    i: integer;
    Prop: Outlook2010.UserProperty;
    IDsp: IDispatch;
-   IMail: MailItem;
+   IMail: Outlook2010.MailItem;
    ReceivedDate: TDateTime;
    Categories:    string;
    bCategoriseEmails: boolean;
@@ -680,6 +692,7 @@ begin
    end;
 end;
 
+
 procedure InboxMessage(AMail: Outlook2010.MailItem; AFileID: string; ANewEmail: boolean = False {; OutlookApp: TOutlookApplication});
 var
    sSubject,
@@ -801,6 +814,7 @@ begin
    end;
 end;
 
+
 procedure SetOutlookApp(OutlookApp: TOutlookApplication);
 begin
 //    AMSOutlook := OutlookApp;
@@ -841,6 +855,7 @@ begin
       (TableString('SCALECOST','CODE',string(ATemplate),'ZERO_FEE') = 'N')) then
       Result := FeeRate('', cmbMatterFind.EditText, cbAuthor.EditValue, dtpCreated.Date);
 end;   }
+
 
 
 end.

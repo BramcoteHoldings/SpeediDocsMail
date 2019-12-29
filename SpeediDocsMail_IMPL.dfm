@@ -11,8 +11,8 @@ object AddInModule: TAddInModule
   OnAddInBeginShutdown = adxCOMAddInModuleAddInBeginShutdown
   OnAddInFinalize = adxCOMAddInModuleAddInFinalize
   TaskPanes = <>
-  Height = 160
-  Width = 272
+  Height = 135
+  Width = 271
   object adxRibbonTab1: TadxRibbonTab
     Caption = 'SpeediDocs'
     Controls = <
@@ -302,6 +302,7 @@ object AddInModule: TAddInModule
     Ribbons2010 = [msrOutlookExplorer2010]
   end
   object adxOutlookAppEvents1: TadxOutlookAppEvents
+    HandleEvents = []
     OnItemSend = adxOutlookAppEvents1ItemSend
     OnNewMailEx = adxOutlookAppEvents1NewMailEx
     Left = 73
